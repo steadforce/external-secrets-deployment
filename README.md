@@ -1,6 +1,7 @@
 # external-secrets for steadforce SteadOps k8s clusters
 
-Repository containing helm chart for external-secrets installation. Never install the content of this repo on our clusters manually. This is all done by argocd.
+Repository containing helm chart for external-secrets installation.
+Never install the content of this repo on our clusters manually. This is all done by argocd.
 
 ## Dependencies
 
