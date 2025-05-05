@@ -19,6 +19,25 @@ and then also commit that new version alongside with the altered
 See the [Helm docs](https://helm.sh/docs/topics/charts/#chart-dependencies)
 for details.
 
+## Installation
+
+Currently we use aws parameter store to store the secrets externally. There are two accounts for
+SteadOps with only access rights to aws SystemManagers Parameterstor. The aws acces key and secret
+for this accounts are stored in the internal password database.
+
+These two secrets have to be passed into the helm chart with parameter keys:
+
+```
+aws.accessKeyId
+aws.secretAccessKey
+```
+
+Therefrom the `awssm-secret` is created. This secret is referenced from `awssm-parameter-store` and
+makes it possible to get external secrets out of the aws parameter store.
+
+For details look at [external secrets aws parameter store](https://external-secrets.io/latest/provider/aws-parameter-store/)
+documentation.
+
 ## Testing
 
 ### values-subchart-overrides.yaml
@@ -51,7 +70,7 @@ Or with output in JUnit format:
   --output-dir _local/local \
   --release-name external-secrets \
   --skip-tests \
-  -a generators.external-secrets.io/v1alpha1/GithubAccessToken \
+  -a external-secrets.io/v1beta1/ClusterSecretStore \
   -f values-subchart-overrides.yaml \
   -f values-local.yaml \
   -n external-secrets \
@@ -66,7 +85,7 @@ Or with output in JUnit format:
   --output-dir _local/dev \
   --release-name external-secrets \
   --skip-tests \
-  -a generators.external-secrets.io/v1alpha1/GithubAccessToken \
+  -a external-secrets.io/v1beta1/ClusterSecretStore \
   -f values-subchart-overrides.yaml \
   -f values-development.yaml \
   -n external-secrets \
@@ -81,7 +100,7 @@ Or with output in JUnit format:
   --output-dir _local/prod \
   --release-name external-secrets \
   --skip-tests \
-  -a generators.external-secrets.io/v1alpha1/GithubAccessToken \
+  -a external-secrets.io/v1beta1/ClusterSecretStore \
   -f values-subchart-overrides.yaml \
   -f values-production.yaml \
   -n external-secrets \
