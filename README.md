@@ -33,8 +33,8 @@ aws.accessKeyId
 aws.secretAccessKey
 ```
 
-Therefrom the `awssm-secret` is created. This secret is referenced from `awssm-parameter-store` and
-makes it possible to get external secrets out of the aws parameter store.
+From these the `awssm-secret` is created. This secret is referenced in `awssm-parameter-store` and
+makes it possible to get external secrets out of the AWS parameter store.
 
 For details look at [external secrets aws parameter store](https://external-secrets.io/latest/provider/aws-parameter-store/)
 documentation.
