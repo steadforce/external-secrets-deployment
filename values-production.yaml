@@ -1,3 +1,3 @@
 aws:
-  role: arn:aws:iam::065204381364:role/external-secrets
+  role: "arn:aws:iam::065204381364:role/external-secrets"
 external-secrets: {}
