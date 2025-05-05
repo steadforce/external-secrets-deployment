@@ -1,4 +1,4 @@
-# external-secrets for steadforce k8s clusters
+# external-secrets for steadforce SteadOps k8s clusters
 
 Repository containing helm chart for external-secrets installation. Never install the content of this repo on our clusters manually. This is all done by argocd.
 
@@ -22,7 +22,7 @@ for details.
 ## Installation
 
 Currently we use aws parameter store to store the secrets externally. There are two accounts for
-SteadOps with only access rights to aws SystemManagers Parameterstor. The aws acces key and secret
+SteadOps with only access rights to aws SystemManagers Parameterstor. The aws access key and secret
 for this accounts are stored in the internal password database.
 
 These two secrets have to be passed into the helm chart with parameter keys:
