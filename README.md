@@ -66,7 +66,7 @@ Or with output in JUnit format:
  docker run --pull=always -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest -o test-output.xml .
 ```
 
-## Render resource local
+## Render resource locally
 
 ### local
 
