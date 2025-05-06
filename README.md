@@ -9,7 +9,7 @@ This chart pulls in `external-secrets` as a dependency. The version
 used is specified in `Chart.yaml` in the `dependencies` section.
 If you change the version in there, you need to then run
 
-```
+```shell
  helm dependency update
 ```
 
@@ -65,7 +65,7 @@ Or with output in JUnit format:
 
 ### local
 
-```
+```shell
  helm template \
   --include-crds \
   --output-dir _local/local \
@@ -80,7 +80,7 @@ Or with output in JUnit format:
 
 ### development
 
-```
+```shell
  helm template \
   --include-crds \
   --output-dir _local/dev \
@@ -95,7 +95,7 @@ Or with output in JUnit format:
 
 ### production
 
-```
+```shell
  helm template \
   --include-crds \
   --output-dir _local/prod \
