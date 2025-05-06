@@ -22,9 +22,10 @@ for details.
 
 ## Installation
 
-Currently we use AWS Parameter Store to store the secrets externally. There are two accounts for
-SteadOps (development and production with only access rights to AWS Systems Manager Parameter Store.
-The AWS access key and secret for these accounts are stored in the internal password database.
+We use AWS Systems Manager's Parameter Store to externally store secrets.
+There are two AWS accounts for SteadOps (development and production) and two AWS IAM users with access to these accounts.
+The users have restricted permissions that only allows access to the Parameter Store.
+The credentials for these users are stored in the internal password database.
 
 These two secrets have to be passed into the helm chart with parameter keys:
 
