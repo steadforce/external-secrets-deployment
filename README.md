@@ -113,9 +113,9 @@ Or with output in JUnit format:
   .
 ```
 
-## Run github pipeline local
+## Run GitHub pipeline locally
 
-To run the github pipeline in local environment, startup the workbench, cd into the folder containing this
+To run the GitHub pipeline in the local environment, start the workbench, cd into the folder containing this
 `README.md` and execute the following command:
 
 ```shell
