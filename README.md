@@ -33,7 +33,7 @@ aws.accessKeyId
 aws.secretAccessKey
 ```
 
-You have to enable the the secret generation wiht the parameter `bootstrapResources.enabled`, since
+You have to enable the secret generation with the parameter `bootstrapResources.enabled`, since
 it's only needed to be created on bootstrapping the external secrets operator.
 
 From these the `awssm-secret` is created. This secret is referenced in `awssm-parameter-store` and
