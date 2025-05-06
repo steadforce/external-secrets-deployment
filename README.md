@@ -33,6 +33,9 @@ aws.accessKeyId
 aws.secretAccessKey
 ```
 
+You have to enable the the secret generation wiht the parameter `bootstrapResources.enabled`, since
+it's only needed to be created on bootstrapping the external secrets operator.
+
 From these the `awssm-secret` is created. This secret is referenced in `awssm-parameter-store` and
 makes it possible to get external secrets out of the AWS parameter store.
 
@@ -107,3 +110,15 @@ Or with output in JUnit format:
   -n external-secrets \
   .
 ```
+
+## Run github pipeline local
+
+To run the github pipeline in local environment, startup the workbench, cd into the folder containing this
+`README.md` and execute the following command:
+
+```shell
+  act
+```
+
+On first execution you're asked which flavour of the act image should be used. Using the default `medium`
+is a good starting point.
