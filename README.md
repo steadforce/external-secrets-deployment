@@ -5,17 +5,8 @@ Never install the content of this repo on our clusters manually. This is all don
 
 ## Dependencies
 
-This chart pulls in `external-secrets` as a dependency. The version
+This chart refers in `external-secrets` as a dependency. The version
 used is specified in `Chart.yaml` in the `dependencies` section.
-If you change the version in there, you need to then run
-
-```shell
- helm dependency update
-```
-
-in order to have the chart downloaded to the `charts` directory
-and then also commit that new version alongside with the altered
-`Chart.yaml` file.
 
 See the [Helm docs](https://helm.sh/docs/topics/charts/#chart-dependencies)
 for details.
