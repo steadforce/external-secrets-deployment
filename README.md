@@ -48,7 +48,7 @@ documentation.
 
 ## Usage of values-subchart-overrides.yaml
 
-The `values-subchart-overrides.yaml` file is used to override values in the cert-manager chart.
+The `values-subchart-overrides.yaml` file is used to override values in the subchart(s) used by this chart.
 We have to separate the values for the subcharts from the values for the main chart, to be able to
 unit test for incompatible changes in values of the subcharts. This is necessary because helm does not allow
 switching off the usage of values.yaml. Now it's possible to test if we use the same registry and repository

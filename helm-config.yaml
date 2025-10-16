@@ -1,6 +1,5 @@
-# configuration file for the different environments
-# it is used by the pipeline hydration step to render
-# the manifests for the different environments
+# Configuration file used by the pipeline hydration step
+# to render the manifests for the different environments
 releaseName: &name external-secrets
 namespace: *name
 environments:
