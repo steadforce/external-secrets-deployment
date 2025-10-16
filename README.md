@@ -1,4 +1,4 @@
-# external-secrets for steadforce SteadOps k8s clusters
+# Deployment for external-secrets
 
 Repository containing helm chart for external-secrets installation.
 Never install the content of this repo on our clusters manually. This is all done by argocd.
@@ -44,17 +44,17 @@ makes it possible to get external secrets out of the AWS parameter store.
 For details, look at [external secrets aws parameter store](https://external-secrets.io/latest/provider/aws-parameter-store/)
 documentation.
 
-## Testing
+# Testing
 
-### values-subchart-overrides.yaml
+## Usage of values-subchart-overrides.yaml
 
-The `values-subchart-overrides.yaml` file is used to override values in the subchart(s) used by this chart.
+The `values-subchart-overrides.yaml` file is used to override values in the cert-manager chart.
 We have to separate the values for the subcharts from the values for the main chart, to be able to
 unit test for incompatible changes in values of the subcharts. This is necessary because helm does not allow
 switching off the usage of values.yaml. Now it's possible to test if we use the same registry and repository
 for images as the subcharts are using.
 
-### run helm unittests
+## Run helm unittests
 
 ```shell
  docker run --pull=always -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest .
@@ -66,56 +66,25 @@ Or with output in JUnit format:
  docker run --pull=always -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest -o test-output.xml .
 ```
 
-## Render resource locally
-
-### local
+## Render all manifests locally
 
 ```shell
- helm template \
-  --include-crds \
-  --output-dir _local/local \
-  --release-name external-secrets \
-  --skip-tests \
-  -a external-secrets.io/v1beta1/ClusterSecretStore \
-  -f values-subchart-overrides.yaml \
-  -f values-local.yaml \
-  -n external-secrets \
-  .
+ for cluster in $(yq '.environments | keys[]' helm-config.yaml); do
+    helm template \
+      -a "$(cluster=$cluster yq '.environments.[env(cluster)].apis | @csv' helm-config.yaml)" \
+      -f "$(cluster=$cluster yq '.environments.[env(cluster)].valueFiles | @csv' helm-config.yaml)" \
+      -n $(yq 'explode(.) | .namespace // ""' helm-config.yaml) \
+      --output-dir _local/$cluster \
+      --include-crds \
+      --release-name $(yq 'explode(.) | .releaseName // ""' helm-config.yaml) \
+      --skip-tests \
+      .
+ done
 ```
 
-### development
+## Run GitHub workflows locally
 
-```shell
- helm template \
-  --include-crds \
-  --output-dir _local/dev \
-  --release-name external-secrets \
-  --skip-tests \
-  -a external-secrets.io/v1beta1/ClusterSecretStore \
-  -f values-subchart-overrides.yaml \
-  -f values-development.yaml \
-  -n external-secrets \
-  .
-```
-
-### production
-
-```shell
- helm template \
-  --include-crds \
-  --output-dir _local/prod \
-  --release-name external-secrets \
-  --skip-tests \
-  -a external-secrets.io/v1beta1/ClusterSecretStore \
-  -f values-subchart-overrides.yaml \
-  -f values-production.yaml \
-  -n external-secrets \
-  .
-```
-
-## Run GitHub pipeline locally
-
-To run the GitHub pipeline in the local environment, start the workbench, cd into the folder containing this
+To run all workflows in a local environment, start up the workbench, cd into the folder containing this
 `README.md` and execute the following command:
 
 ```shell

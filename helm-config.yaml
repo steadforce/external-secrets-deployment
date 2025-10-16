@@ -3,23 +3,25 @@
 # the manifests for the different environments
 releaseName: &name external-secrets
 namespace: *name
-local:
-  apis: &apis
-  - monitoring.coreos.com/v1/PodMonitor
-  - monitoring.coreos.com/v1/ServiceMonitor
-  valueFiles:
-  - values-subchart-overrides.yaml
-  - values-local.yaml
-sf-k8s01-dev:
-  apis: *apis
-  valueFiles: &devValues
-  - values-subchart-overrides.yaml
-  - values-development.yaml
-sf-k8s02-dev:
-  apis: *apis
-  valueFiles: *devValues
-sf-k8s01-prod:
-  apis: *apis
-  valueFiles:
-  - values-subchart-overrides.yaml
-  - values-production.yaml
+environments:
+  local:
+    apis: &apis
+    - external-secrets.io/v1beta1/ClusterSecretStore
+    - monitoring.coreos.com/v1/PodMonitor
+    - monitoring.coreos.com/v1/ServiceMonitor
+    valueFiles:
+    - values-subchart-overrides.yaml
+    - values-local.yaml
+  sf-k8s01-dev:
+    apis: *apis
+    valueFiles: &devValues
+    - values-subchart-overrides.yaml
+    - values-development.yaml
+  sf-k8s02-dev:
+    apis: *apis
+    valueFiles: *devValues
+  sf-k8s01-prod:
+    apis: *apis
+    valueFiles:
+    - values-subchart-overrides.yaml
+    - values-production.yaml

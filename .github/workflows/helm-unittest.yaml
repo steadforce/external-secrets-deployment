@@ -1,9 +1,9 @@
-name: Helm unittest CI
+name: Helm unittest
 
 on: [push]
 
 jobs:
   unittest:
-    uses: steadforce/steadops-workflows/.github/workflows/helm-unittest.yaml@35ed9bee859dc4e57d5c0805f2fce3d4e327060c
+    uses: steadforce/steadops-workflows/.github/workflows/helm-unittest.yaml@main
     secrets:
       steadopsHelmRenovationMsTeamsWebhook: ${{ secrets.STEADOPS_HELM_RENOVATION_MS_TEAMS_WEBHOOK }}
