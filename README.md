@@ -5,7 +5,7 @@ Never install the content of this repo on our clusters manually. This is all don
 
 ## Dependencies
 
-This chart refers in `external-secrets` as a dependency. The version
+This chart refers `external-secrets` as a dependency. The version
 used is specified in `Chart.yaml` in the `dependencies` section.
 
 See the [Helm docs](https://helm.sh/docs/topics/charts/#chart-dependencies)
@@ -60,6 +60,7 @@ Or with output in JUnit format:
 ## Render all manifests locally
 
 ```shell
+ helm dependency update && \
  for cluster in $(yq '.environments | keys[]' helm-config.yaml); do
     helm template \
       -a "$(cluster=$cluster yq '.environments.[env(cluster)].apis | @csv' helm-config.yaml)" \
