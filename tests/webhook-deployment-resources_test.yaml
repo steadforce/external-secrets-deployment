@@ -4,10 +4,26 @@ release:
 templates:
 - charts/external-secrets/templates/webhook-deployment.yaml
 tests:
-- it: webhook container resources for local cluster
-  values:
+- it: snapshot test for detecting side effects on all local webhook-deployments during local development
+  asserts:
+  - matchSnapshot: {}
+  values: &localValues
   - ../values-subchart-overrides.yaml
   - ../values-local.yaml
+- it: snapshot test for detecting side effects on all dev webhook-deployments during local development
+  asserts:
+  - matchSnapshot: {}
+  values: &devValues
+  - ../values-subchart-overrides.yaml
+  - ../values-development.yaml
+- it: snapshot test for detecting side effects on all prod webhook-deployments during local development
+  asserts:
+  - matchSnapshot: {}
+  values: &prodValues
+  - ../values-subchart-overrides.yaml
+  - ../values-production.yaml
+- it: webhook container resources for local cluster
+  values: *localValues
   asserts:
   - matchRegex:
       path: &cpuLimitsPath spec.template.spec.containers[?(@.name == "webhook")].resources.limits.cpu
@@ -25,12 +41,9 @@ tests:
       path: &requestsMemoryPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.memory
       # on local cluster we expect 0 or 0Mi 0Gi memory requests
       pattern: "^0(Ki|Mi|Gi)?$"
-  - matchSnapshot: {}
 
 - it: webhook container resources for dev-cloud01 cluster
-  values:
-  - ../values-subchart-overrides.yaml
-  - ../values-development.yaml
+  values: *devValues
   asserts: &nonLocalResourcesAsserts
   - matchRegex:
       path: *cpuLimitsPath
@@ -48,10 +61,7 @@ tests:
       path: *requestsMemoryPath
       # on non local cluster we expect non 0 memory requests
       pattern: *nonZeroMemoryPattern
-  - matchSnapshot: {}
 
 - it: webhook container resources for prod-cloud01 cluster
-  values:
-  - ../values-subchart-overrides.yaml
-  - ../values-production.yaml
+  values: *prodValues
   asserts: *nonLocalResourcesAsserts

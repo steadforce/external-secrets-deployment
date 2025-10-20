@@ -7,19 +7,19 @@ release:
 templates:
 - charts/external-secrets/templates/servicemonitor.yaml
 tests:
-- it: snapshot test for detecting side effects on all service-monitors during local development
+- it: snapshot test for detecting side effects on all local service-monitors during local development
   asserts:
   - matchSnapshot: {}
   values: &localValues
   - ../values-subchart-overrides.yaml
   - ../values-local.yaml
-- it: snapshot test for detecting side effects on all service-monitors during local development
+- it: snapshot test for detecting side effects on all dev service-monitors during local development
   asserts:
   - matchSnapshot: {}
   values: &devValues
   - ../values-subchart-overrides.yaml
   - ../values-development.yaml
-- it: snapshot test for detecting side effects on all service-monitors during local development
+- it: snapshot test for detecting side effects on all prod service-monitors during local development
   asserts:
   - matchSnapshot: {}
   values: &prodValues
