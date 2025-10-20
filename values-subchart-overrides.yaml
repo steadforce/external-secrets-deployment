@@ -1,1 +1,28 @@
-external-secrets: {}
+external-secrets:
+  certController:
+    resources:
+      limits:
+        cpu: 250m
+        memory: 64Mi
+      requests:
+        cpu: 10m
+        memory: 32Mi
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  serviceMonitor:
+    additionalLabels:
+      prometheus: cluster-monitoring
+    enabled: true
+  webhook:
+    resources:
+      limits:
+          cpu: 250m
+          memory: 64Mi
+      requests:
+        cpu: 10m
+        memory: 32Mi

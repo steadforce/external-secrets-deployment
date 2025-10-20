@@ -48,13 +48,13 @@ for images as the subcharts are using.
 ## Run helm unittests
 
 ```shell
- docker run --pull=always -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest .
+ docker run -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest .
 ```
 
 Or with output in JUnit format:
 
 ```shell
- docker run --pull=always -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest -o test-output.xml .
+ docker run -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest -o test-output.xml .
 ```
 
 ## Render all manifests locally
