@@ -55,6 +55,9 @@ following command.
     kubectl -n "$NS" apply -f -
 ```
 
+You have to ensure that you're in the kubectl context (local/development/production)
+for the cluster you want to apply the new secrets.
+
 # Testing
 
 ## Usage of values-subchart-overrides.yaml
