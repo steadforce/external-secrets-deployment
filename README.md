@@ -41,7 +41,8 @@ If an update for the aws-secret is needed, the chart supports re-rendering and u
 following command.
 
 ```shell
- NS=$(yq 'explode(.) | .namespace // ""' helm-config.yaml)
+ NS=$(yq 'explode(.) | .namespace // ""' helm-config.yaml) \
+ helm dependency update && \
  helm template \
    --release-name $(yq 'explode(.) | .releaseName // ""' helm-config.yaml) \
    --set aws.accessKeyId="<-- new aws key id for the stage -->" \
