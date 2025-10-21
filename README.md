@@ -35,6 +35,25 @@ makes it possible to get external secrets out of the AWS parameter store.
 For details, look at [external secrets aws parameter store](https://external-secrets.io/latest/provider/aws-parameter-store/)
 documentation.
 
+## Update awssm-secret
+
+If an update for the aws-secret is needed, the chart supports re-rendering and update by executing the
+following command.
+
+```shell
+ NS=$(yq 'explode(.) | .namespace // ""' helm-config.yaml)
+ helm template \
+   --release-name $(yq 'explode(.) | .releaseName // ""' helm-config.yaml) \
+   --set aws.accessKeyId="<-- new aws key id for the stage -->" \
+   --set aws.secretAccessKey="<--new aws secret access key for the stage -->" \
+   --set bootstrapResources.enabled=true \
+   --skip-tests \
+   -n "$NS" \
+   -s templates/awssm-secret.yaml \
+   . | \
+    kubectl -n "$NS" apply -f -
+```
+
 # Testing
 
 ## Usage of values-subchart-overrides.yaml
