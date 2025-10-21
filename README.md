@@ -5,7 +5,7 @@ Never install the content of this repo on our clusters manually. This is all don
 
 ## Dependencies
 
-This chart refers `external-secrets` as a dependency. The version
+This chart references `external-secrets` as a dependency. The version
 used is specified in `Chart.yaml` in the `dependencies` section.
 
 See the [Helm docs](https://helm.sh/docs/topics/charts/#chart-dependencies)
