@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: &appVersion 0.17.0
+appVersion: &appVersion 0.18.2
 name: &name external-secrets
 version: 1.0.0
 dependencies:
