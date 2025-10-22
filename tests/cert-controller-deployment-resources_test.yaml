@@ -1,0 +1,67 @@
+suite: test if the resource settings for cert-controller container in cluster is correct
+release:
+  name: external-secrets
+templates:
+- charts/external-secrets/templates/cert-controller-deployment.yaml
+tests:
+- it: snapshot test for detecting side effects on all local cert-controller deployments during local development
+  asserts:
+  - matchSnapshot: {}
+  values: &localValues
+  - ../values-subchart-overrides.yaml
+  - ../values-local.yaml
+- it: snapshot test for detecting side effects on all dev cert-controller deployments during local development
+  asserts:
+  - matchSnapshot: {}
+  values: &devValues
+  - ../values-subchart-overrides.yaml
+  - ../values-development.yaml
+- it: snapshot test for detecting side effects on all prod cert-controller deployments during local development
+  asserts:
+  - matchSnapshot: {}
+  values: &prodValues
+  - ../values-subchart-overrides.yaml
+  - ../values-production.yaml
+- it: cert-controller container resources for local cluster
+  values: *localValues
+  asserts:
+  - matchRegex:
+      path: &cpuLimitsPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.limits.cpu
+      # on local cluster we expect 0 or 0m cpu limits
+      pattern: &localCpuPattern "^0(m)?$"
+  - matchRegex:
+      path: &memoryLimitsPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.limits.memory
+      # on local cluster we expect non 0 memory limits
+      pattern: &nonZeroMemoryPattern "^[1-9][0-9]*(Ki|Mi|Gi)?$"
+  - matchRegex:
+      path: &requestsCpuPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.requests.cpu
+      # on local cluster we expect 0 or 0m cpu requests
+      pattern: *localCpuPattern
+  - matchRegex:
+      path: &requestsMemoryPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.requests.memory
+      # on local cluster we expect 0 or 0Mi 0Gi memory requests
+      pattern: "^0(Ki|Mi|Gi)?$"
+
+- it: cert-controller container resources for dev-cloud01 cluster
+  values: *devValues
+  asserts: &nonLocalResourcesAsserts
+  - matchRegex:
+      path: *cpuLimitsPath
+      # on non local cluster we expect >= 1m cpu limits
+      pattern: &cpuPattern "^[1-9][0-9]*(m)?$"
+  - matchRegex:
+      path: *memoryLimitsPath
+      # on non local cluster we expect non 0 memory limits
+      pattern: *nonZeroMemoryPattern
+  - matchRegex:
+      path: *requestsCpuPath
+      # on non local cluster we expect  >= 1m cpu cpu requests
+      pattern: *cpuPattern
+  - matchRegex:
+      path: *requestsMemoryPath
+      # on non local cluster we expect non 0 memory requests
+      pattern: *nonZeroMemoryPattern
+
+- it: cert-controller container resources for prod-cloud01 cluster
+  values: *prodValues
+  asserts: *nonLocalResourcesAsserts
