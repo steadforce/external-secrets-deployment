@@ -1,0 +1,24 @@
+---
+# Source: external-secrets/charts/external-secrets/templates/cert-controller-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-secrets-cert-controller-metrics
+  namespace: external-secrets
+  labels:
+    helm.sh/chart: external-secrets-0.17.0
+    app.kubernetes.io/name: external-secrets-cert-controller
+    app.kubernetes.io/instance: external-secrets
+    app.kubernetes.io/version: "v0.17.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/metrics: "cert-controller"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: metrics
+    name: metrics
+  selector:
+    app.kubernetes.io/name: external-secrets-cert-controller
+    app.kubernetes.io/instance: external-secrets
