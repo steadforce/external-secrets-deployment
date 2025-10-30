@@ -9,7 +9,7 @@ tests:
 - it: snapshot test for detecting side effects on sshkey crd during local development
   asserts:
   - matchSnapshot: {}
-- it: check if the sshkey crd annotations contains the argocd server-side apply annotation
+- it: check if the sshkey crd annotations contain the argocd server-side apply annotation
   asserts:
   - isSubset:
       path: metadata.annotations
