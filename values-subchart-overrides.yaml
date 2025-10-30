@@ -7,6 +7,9 @@ external-secrets:
       requests:
         cpu: 10m
         memory: 32Mi
+  crds:
+    annotations:
+      argocd.argoproj.io/sync-options: ServerSideApply=true
   resources:
     limits:
       cpu: 250m
