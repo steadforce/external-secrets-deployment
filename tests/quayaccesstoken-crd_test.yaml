@@ -1,0 +1,17 @@
+suite: check if the quayaccesstoken crd has the argocd server-side apply annotation
+release:
+  name: external-secrets
+templates:
+- charts/external-secrets/templates/crds/quayaccesstoken.yaml
+values:
+- ../values-subchart-overrides.yaml
+tests:
+- it: snapshot test for detecting side effects on quayaccesstoken crd during local development
+  asserts:
+  - matchSnapshot: {}
+- it: check if the quayaccesstoken crd annotations contain the argocd server-side apply annotation
+  asserts:
+  - isSubset:
+      path: metadata.annotations
+      content:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
