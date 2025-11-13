@@ -1,7 +1,6 @@
 suite: test if the settings for service-monitors are correct
 capabilities:
   apiVersions:
-  - monitoring.coreos.com/v1
   - monitoring.coreos.com/v1/ServiceMonitor
 release:
   name: external-secrets
