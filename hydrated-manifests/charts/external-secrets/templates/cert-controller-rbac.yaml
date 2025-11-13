@@ -5,10 +5,11 @@ kind: ClusterRole
 metadata:
   name: external-secrets-cert-controller
   labels:
-    helm.sh/chart: external-secrets-0.19.2
+    
+    helm.sh/chart: external-secrets-0.20.4
     app.kubernetes.io/name: external-secrets-cert-controller
     app.kubernetes.io/instance: external-secrets
-    app.kubernetes.io/version: "v0.19.2"
+    app.kubernetes.io/version: "v0.20.4"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/metrics: "cert-controller"
 rules:
@@ -89,10 +90,11 @@ kind: ClusterRoleBinding
 metadata:
   name: external-secrets-cert-controller
   labels:
-    helm.sh/chart: external-secrets-0.19.2
+    
+    helm.sh/chart: external-secrets-0.20.4
     app.kubernetes.io/name: external-secrets-cert-controller
     app.kubernetes.io/instance: external-secrets
-    app.kubernetes.io/version: "v0.19.2"
+    app.kubernetes.io/version: "v0.20.4"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/metrics: "cert-controller"
 roleRef:
