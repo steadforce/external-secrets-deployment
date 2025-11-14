@@ -5,7 +5,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: ServerSideApply=true
-    controller-gen.kubebuilder.io/version: v0.18.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   labels:
     external-secrets.io/component: controller
   name: githubaccesstokens.generators.external-secrets.io
@@ -44,6 +44,7 @@ spec:
             metadata:
               type: object
             spec:
+              description: GithubAccessTokenSpec defines the desired state to generate a GitHub access token.
               properties:
                 appID:
                   type: string
@@ -51,10 +52,11 @@ spec:
                   description: Auth configures how ESO authenticates with a Github instance.
                   properties:
                     privateKey:
+                      description: GithubSecretRef references a secret containing GitHub credentials.
                       properties:
                         secretRef:
                           description: |-
-                            A reference to a specific 'key' within a Secret resource.
+                            SecretKeySelector is a reference to a specific 'key' within a Secret resource.
                             In some instances, `key` is a required field.
                           properties:
                             key:
@@ -101,7 +103,7 @@ spec:
                     type: string
                   type: array
                 url:
-                  description: URL configures the Github instance URL. Defaults to https://github.com/.
+                  description: URL configures the GitHub instance URL. Defaults to https://github.com/.
                   type: string
               required:
                 - appID
