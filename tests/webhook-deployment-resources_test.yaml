@@ -5,58 +5,58 @@ templates:
 - charts/external-secrets/templates/webhook-deployment.yaml
 tests:
 - it: sets local resources for webhook container
-  values: &localValues
+  values: &localValuesFiles
   - ../values-subchart-overrides.yaml
   - ../values-local.yaml
   asserts:
   - matchRegex:
-      path: &cpuLimitsPath spec.template.spec.containers[?(@.name == "webhook")].resources.limits.cpu
+      path: &cpuLimitsAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.limits.cpu
       # on local cluster we expect 0 or 0m cpu limits
       pattern: &localCpuPattern "^0(m)?$"
   - matchRegex:
-      path: &memoryLimitsPath spec.template.spec.containers[?(@.name == "webhook")].resources.limits.memory
+      path: &memoryLimitsAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.limits.memory
       # on local cluster we expect non 0 memory limits
       pattern: &nonZeroMemoryPattern "^[1-9][0-9]*(Ki|Mi|Gi)?$"
   - matchRegex:
-      path: &requestsCpuPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.cpu
+      path: &requestsCpuAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.cpu
       # on local cluster we expect 0 or 0m cpu requests
       pattern: *localCpuPattern
   - matchRegex:
-      path: &requestsMemoryPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.memory
+      path: &requestsMemoryAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.memory
       # on local cluster we expect 0 or 0Mi 0Gi memory requests
       pattern: "^0(Ki|Mi|Gi)?$"
   - matchRegex:
-      path: &imagePath spec.template.spec.containers[?(@.name == "webhook")].image
+      path: &imageAssertPath spec.template.spec.containers[?(@.name == "webhook")].image
       # keep image repository stable and allow chart-tag upgrades
       pattern: ^oci\.external-secrets\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
 
-- it: sets non-local resources for webhook on development
-  values: &devValues
+- it: sets non-local resources for webhook on development environment
+  values: &devValuesFiles
   - ../values-subchart-overrides.yaml
   - ../values-development.yaml
   asserts: &nonLocalResourcesAsserts
   - matchRegex:
-      path: *cpuLimitsPath
+      path: *cpuLimitsAssertPath
       # on non local cluster we expect >= 1m cpu limits
       pattern: &cpuPattern "^[1-9][0-9]*(m)?$"
   - matchRegex:
-      path: *memoryLimitsPath
+      path: *memoryLimitsAssertPath
       # on non local cluster we expect non 0 memory limits
       pattern: *nonZeroMemoryPattern
   - matchRegex:
-      path: *requestsCpuPath
+      path: *requestsCpuAssertPath
       # on non local cluster we expect  >= 1m cpu cpu requests
       pattern: *cpuPattern
   - matchRegex:
-      path: *requestsMemoryPath
+      path: *requestsMemoryAssertPath
       # on non local cluster we expect non 0 memory requests
       pattern: *nonZeroMemoryPattern
   - matchRegex:
-      path: *imagePath
+      path: *imageAssertPath
       pattern: ^oci\.external-secrets\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
 
-- it: sets non-local resources for webhook on production
-  values: &prodValues
+- it: sets non-local resources for webhook on production environment
+  values: &prodValuesFiles
   - ../values-subchart-overrides.yaml
   - ../values-production.yaml
   asserts: *nonLocalResourcesAsserts
