@@ -1,112 +1,108 @@
-# Deployment for external-secrets
+# External Secrets Deployment
 
-Repository containing helm chart for external-secrets installation.
-Never install the content of this repo on our clusters manually. This is all done by argocd.
+Umbrella chart for deploying `external-secrets` with Argo CD. This repository packages the upstream chart,
+adds SteadOps-specific bootstrap resources, and defines environment-specific value files for hydration.
 
-## Dependencies
+> [!IMPORTANT]
+> Do not install this chart manually on clusters. Argo CD is responsible for all deployments.
 
-This chart references `external-secrets` as a dependency. The version
-used is specified in `Chart.yaml` in the `dependencies` section.
+## What is in this repository?
 
-See the [Helm docs](https://helm.sh/docs/topics/charts/#chart-dependencies)
-for details.
+- `Chart.yaml` defines the upstream `external-secrets` dependency.
+- `helm-config.yaml` describes the hydration scope and the environment-to-value-file mapping.
+- `values.yaml` and `values-*.yaml` provide the default, local, development, and production settings.
+- `templates/` contains the bootstrap secret and related deployment helpers.
+- `tests/` contains Helm unittest coverage for the main chart and subchart-driven behavior.
 
-## Installation
+## Configuration overview
 
-We use AWS Systems Manager's Parameter Store to externally store secrets.
-There are two AWS accounts for SteadOps (development and production) and two AWS IAM users with access to these accounts.
-The users have restricted permissions that only allows access to the Parameter Store.
-The credentials for these users are stored in the internal password database.
+The chart uses AWS Systems Manager Parameter Store as the secret backend.
+The bootstrap credentials are passed through these values:
 
-These two secrets have to be passed into the helm chart with parameter keys:
+- `aws.accessKeyId`
+- `aws.secretAccessKey`
 
+Set `bootstrapResources.enabled=true` to render the bootstrap secret. The secret is named `awssm-secret` and is
+used by the `awssm-parameter-store` ClusterSecretStore.
+
+The most important value files are:
+
+- `values-subchart-overrides.yaml` for subchart-specific overrides used by the tests and hydrated environments
+- `values-local.yaml` for local resource sizing
+- `values-development.yaml` for development clusters
+- `values-production.yaml` for production clusters
+
+## Common workflows
+
+### Update chart dependencies
+
+```sh
+ docker run --rm -u $(id -u) -e HOME=/tmp \
+   -v "$(pwd):/apps" \
+   -w /apps \
+   alpine/helm dependency update .
 ```
-aws.accessKeyId
-aws.secretAccessKey
+
+### Render manifests for a local environment
+
+```sh
+ docker run --rm -u $(id -u) -e HOME=/tmp \
+   -v "$(pwd):/apps" \
+   -w /apps \
+   alpine/helm template external-secrets . \
+   --include-crds \
+   --release-name external-secrets \
+   -f values-subchart-overrides.yaml \
+   -f values-local.yaml
 ```
 
-You have to enable the secret generation with the parameter `bootstrapResources.enabled`, since
-it only needs to be created on bootstrapping the external secrets operator.
+### Render the bootstrap secret for a cluster
 
-From the `aws.accessKeyId` and the `aws.secretAccessKey` the `awssm-secret` is created. 
-This secret is referenced in `awssm-parameter-store` and
-makes it possible to get external secrets out of the AWS parameter store.
-
-For details, look at [external secrets aws parameter store](https://external-secrets.io/latest/provider/aws-parameter-store/)
-documentation.
-
-## Update awssm-secret
-
-If an update for the aws-secret is needed, the chart supports re-rendering and update by executing the
-following command.
-
-```shell
- NS=$(yq 'explode(.) | .namespace // ""' helm-config.yaml) \
- helm dependency update && \
- helm template \
-   --release-name $(yq 'explode(.) | .releaseName // ""' helm-config.yaml) \
-   --set aws.accessKeyId="<-- new aws key id for the stage -->" \
-   --set aws.secretAccessKey="<--new aws secret access key for the stage -->" \
+```sh
+ docker run --rm -u $(id -u) -e HOME=/tmp \
+   -v "$(pwd):/apps" \
+   -w /apps \
+   alpine/helm template external-secrets . \
+   --include-crds \
+   --release-name external-secrets \
+   --set aws.accessKeyId="<aws-access-key-id>" \
+   --set aws.secretAccessKey="<aws-secret-access-key>" \
    --set bootstrapResources.enabled=true \
-   --skip-tests \
-   -n "$NS" \
-   -s templates/awssm-secret.yaml \
-   . | \
-    kubectl -n "$NS" apply -f -
+   -s templates/awssm-secret.yaml
 ```
 
-You have to ensure that you're in the kubectl context (local/development/production)
-for the cluster you want to apply the new secrets.
+### Run Helm unittest
 
-# Testing
-
-## Usage of values-subchart-overrides.yaml
-
-The `values-subchart-overrides.yaml` file is used to override values in the subchart(s) used by this chart.
-We have to separate the values for the subcharts from the values for the main chart, to be able to
-unit test for incompatible changes in values of the subcharts. This is necessary because helm does not allow
-switching off the usage of values.yaml. Now it's possible to test if we use the same registry and repository
-for images as the subcharts are using.
-
-## Run helm unittests
-
-```shell
- helm dependency update && \
- docker run -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest .
+```sh
+ docker run --rm -u $(id -u) -e HOME=/tmp \
+   -e HELM_CACHE_HOME=/tmp/helm/.config \
+   -v "$(pwd):/apps" \
+   -w /apps \
+   helmunittest/helm-unittest .
 ```
 
-Or with output in JUnit format:
+### Run Helm unittest with JUnit output
 
-```shell
- helm dependency update && \
- docker run -ti --rm -v "$(pwd):/apps" -u $(id -u) helmunittest/helm-unittest -o test-output.xml .
+```sh
+ docker run --rm -u $(id -u) -e HOME=/tmp \
+   -e HELM_CACHE_HOME=/tmp/helm/.config \
+   -v "$(pwd):/apps" \
+   -w /apps \
+   helmunittest/helm-unittest -o test-output.xml .
 ```
 
-## Render all manifests locally
+### Run GitHub workflows locally
 
-```shell
- helm dependency update && \
- for cluster in $(yq '.environments | keys[]' helm-config.yaml); do
-    helm template \
-      -a "$(cluster=$cluster yq '.environments.[env(cluster)].apis | @csv' helm-config.yaml)" \
-      -f "$(cluster=$cluster yq '.environments.[env(cluster)].valueFiles | @csv' helm-config.yaml)" \
-      -n $(yq 'explode(.) | .namespace // ""' helm-config.yaml) \
-      --output-dir _local/$cluster \
-      --include-crds \
-      --release-name $(yq 'explode(.) | .releaseName // ""' helm-config.yaml) \
-      --skip-tests \
-      .
- done
+To run the repository workflows locally, start the workbench, change into this repository, and run:
+
+```sh
+ act
 ```
 
-## Run GitHub workflows locally
+On the first run, `act` asks which image flavor to use. The default `medium` is a good starting point.
 
-To run all workflows in a local environment, start up the workbench, cd into the folder containing this
-`README.md` and execute the following command:
+## Notes
 
-```shell
-  act
-```
-
-On first execution you're asked which flavour of the act image should be used. Using the default `medium`
-is a good starting point.
+- `tests/` includes resource assertions, CRD annotations, and environment-specific checks for the hydrated chart.
+- If you add a new environment value file, update `helm-config.yaml` and add a matching test case.
+- Snapshot files in `tests/__snapshot__/` are generated by Helm unittest and should not be committed unless needed.
