@@ -8,10 +8,10 @@ templates:
 - charts/external-secrets/templates/servicemonitor.yaml
 tests:
 - it: sets prometheus label on core controller monitor for local environment
-  values: &localValuesFiles
-  - ../values-subchart-overrides.yaml
+  values: &localValues
+  - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
   - ../values-local.yaml
-  documentSelector:
+  documentSelector: &coreControllerMonitorSelector
     path: metadata.name
     value: external-secrets-metrics
   asserts: &prometheusLabelAssert
@@ -19,54 +19,42 @@ tests:
       path: metadata.labels.prometheus
       pattern: ^cluster-monitoring$
 - it: sets prometheus label on webhook monitor for local environment
-  values: *localValuesFiles
-  documentSelector:
+  values: *localValues
+  documentSelector: &webhookMonitorSelector
     path: metadata.name
     value: external-secrets-webhook-metrics
   asserts: *prometheusLabelAssert
 - it: sets prometheus label on cert-controller monitor for local environment
-  values: *localValuesFiles
-  documentSelector:
+  values: *localValues
+  documentSelector: &certControllerMonitorSelector
     path: metadata.name
     value: external-secrets-cert-controller-metrics
   asserts: *prometheusLabelAssert
 - it: sets prometheus label on core controller monitor for development environment
-  values: &devValuesFiles
-  - ../values-subchart-overrides.yaml
+  values: &developmentValues
+  - *subchartOverrideValuesFile
   - ../values-development.yaml
-  documentSelector:
-    path: metadata.name
-    value: external-secrets-metrics
+  documentSelector: *coreControllerMonitorSelector
   asserts: *prometheusLabelAssert
 - it: sets prometheus label on webhook monitor for development environment
-  values: *devValuesFiles
-  documentSelector:
-    path: metadata.name
-    value: external-secrets-webhook-metrics
+  values: *developmentValues
+  documentSelector: *webhookMonitorSelector
   asserts: *prometheusLabelAssert
 - it: sets prometheus label on cert-controller monitor for development environment
-  values: *devValuesFiles
-  documentSelector:
-    path: metadata.name
-    value: external-secrets-cert-controller-metrics
+  values: *developmentValues
+  documentSelector: *certControllerMonitorSelector
   asserts: *prometheusLabelAssert
 - it: sets prometheus label on core controller monitor for production environment
-  values: &prodValuesFiles
-  - ../values-subchart-overrides.yaml
+  values: &productionValues
+  - *subchartOverrideValuesFile
   - ../values-production.yaml
-  documentSelector:
-    path: metadata.name
-    value: external-secrets-metrics
+  documentSelector: *coreControllerMonitorSelector
   asserts: *prometheusLabelAssert
 - it: sets prometheus label on webhook monitor for production environment
-  values: *prodValuesFiles
-  documentSelector:
-    path: metadata.name
-    value: external-secrets-webhook-metrics
+  values: *productionValues
+  documentSelector: *webhookMonitorSelector
   asserts: *prometheusLabelAssert
 - it: sets prometheus label on cert-controller monitor for production environment
-  values: *prodValuesFiles
-  documentSelector:
-    path: metadata.name
-    value: external-secrets-cert-controller-metrics
+  values: *productionValues
+  documentSelector: *certControllerMonitorSelector
   asserts: *prometheusLabelAssert

@@ -5,8 +5,8 @@ templates:
 - charts/external-secrets/templates/cert-controller-deployment.yaml
 tests:
 - it: sets local resources for cert-controller container
-  values: &localValuesFiles
-  - ../values-subchart-overrides.yaml
+  values:
+  - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
   - ../values-local.yaml
   asserts:
   - matchRegex:
@@ -28,13 +28,13 @@ tests:
   - matchRegex:
       path: &imageAssertPath spec.template.spec.containers[?(@.name == "cert-controller")].image
       # keep image repository stable and allow chart-tag upgrades
-      pattern: ^oci\.external-secrets\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
+      pattern: &imagePattern ^oci\.external-secrets\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
 
 - it: sets non-local resources for cert-controller on development environment
-  values: &devValuesFiles
-  - ../values-subchart-overrides.yaml
+  values:
+  - *subchartOverrideValuesFile
   - ../values-development.yaml
-  asserts: &nonLocalResourcesAsserts
+  asserts: &nonLocalResourcesAssert
   - matchRegex:
       path: *cpuLimitsAssertPath
       # on non local cluster we expect >= 1m cpu limits
@@ -53,10 +53,10 @@ tests:
       pattern: *nonZeroMemoryPattern
   - matchRegex:
       path: *imageAssertPath
-      pattern: ^oci\.external-secrets\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
+      pattern: *imagePattern
 
 - it: sets non-local resources for cert-controller on production environment
-  values: &prodValuesFiles
-  - ../values-subchart-overrides.yaml
+  values:
+  - *subchartOverrideValuesFile
   - ../values-production.yaml
-  asserts: *nonLocalResourcesAsserts
+  asserts: *nonLocalResourcesAssert
