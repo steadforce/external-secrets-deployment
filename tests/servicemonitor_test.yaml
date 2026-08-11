@@ -2,6 +2,7 @@ suite: ServiceMonitor labels per environment
 capabilities:
   apiVersions:
   - monitoring.coreos.com/v1
+  - monitoring.coreos.com/v1/ServiceMonitor
 release:
   name: external-secrets
 templates:
