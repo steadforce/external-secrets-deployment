@@ -85,7 +85,6 @@ in `helm-config.yaml`.
    -w /apps \
    alpine/helm template external-secrets . \
    --include-crds \
-   --release-name external-secrets \
    -f values-subchart-overrides.yaml \
    -f values-local.yaml
 ```
@@ -102,7 +101,6 @@ Only needed once per cluster, to seed the AWS credentials the `ClusterSecretStor
    -w /apps \
    alpine/helm template external-secrets . \
    --include-crds \
-   --release-name external-secrets \
    --set aws.accessKeyId="<aws-access-key-id>" \
    --set aws.secretAccessKey="<aws-secret-access-key>" \
    --set bootstrapResources.enabled=true \
