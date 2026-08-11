@@ -1,52 +1,86 @@
 # External Secrets Deployment
 
-Umbrella chart for deploying `external-secrets` with Argo CD. This repository packages the upstream chart,
-adds SteadOps-specific bootstrap resources, and defines environment-specific value files for hydration.
+[![Helm unittest](https://github.com/steadforce/external-secrets-deployment/actions/workflows/helm-unittest.yaml/badge.svg)](https://github.com/steadforce/external-secrets-deployment/actions/workflows/helm-unittest.yaml)
+[![Helm hydration](https://github.com/steadforce/external-secrets-deployment/actions/workflows/helm-hydration.yaml/badge.svg)](https://github.com/steadforce/external-secrets-deployment/actions/workflows/helm-hydration.yaml)
+[![Trufflehog](https://github.com/steadforce/external-secrets-deployment/actions/workflows/trufflehog.yaml/badge.svg)](https://github.com/steadforce/external-secrets-deployment/actions/workflows/trufflehog.yaml)
+
+Umbrella chart for deploying [`external-secrets`](https://charts.external-secrets.io) with Argo CD. This repository
+packages the upstream chart, adds SteadOps-specific bootstrap resources, and defines environment-specific value
+files for hydration.
 
 > [!IMPORTANT]
-> Do not install this chart manually on clusters. Argo CD is responsible for all deployments.
+> Do not install this chart manually on clusters. Argo CD is responsible for all deployments; the commands below
+> are for local rendering, testing, and dependency management only.
 
-## What is in this repository?
+## Repository Layout
 
-- `Chart.yaml` defines the upstream `external-secrets` dependency.
-- `helm-config.yaml` describes the hydration scope and the environment-to-value-file mapping.
-- `values.yaml` and `values-*.yaml` provide the default, local, development, and production settings.
-- `templates/` contains the bootstrap secret and related deployment helpers.
-- `tests/` contains Helm unittest coverage for the main chart and subchart-driven behavior.
+- `Chart.yaml` — declares the upstream `external-secrets` dependency and this umbrella chart's own version.
+- `helm-config.yaml` — the hydration scope: environments, allowed API versions, and value file mapping.
+- `values.yaml`, `values-*.yaml` — default, local, development, and production settings, plus the
+  subchart overrides shared by every environment.
+- `templates/` — SteadOps-specific bootstrap secret and `ClusterSecretStore` templates.
+- `charts/` — the vendored `external-secrets` dependency archive, fetched by `helm dependency update` and not
+  committed.
+- `tests/` — Helm unittest suites covering CRDs, resource sizing, and environment-specific behavior.
+- `.github/workflows/` — CI: unit tests, manifest hydration, and secret scanning.
 
-## Configuration overview
+## Environments
 
-The chart uses AWS Systems Manager Parameter Store as the secret backend.
-The bootstrap credentials are passed through these values:
+Environments and their value files are declared in `helm-config.yaml`, which the hydration pipeline reads to
+render manifests per cluster. Do not add `-f` overrides that aren't listed there — they will not be applied by
+the pipeline.
+
+| Environment                                    | Value Files                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| `local`                                         | `values-subchart-overrides.yaml`, `values-local.yaml`             |
+| `sf-k8s01-dev`, `sf-k8s02-dev`, `sf-k8s03-dev`   | `values-subchart-overrides.yaml`, `values-development.yaml`       |
+| `sf-k8s01-prod`                                  | `values-subchart-overrides.yaml`, `values-production.yaml`        |
+
+> [!TIP]
+> When adding a new environment value file, register it in `helm-config.yaml` and cover it with a matching Helm
+> unittest case. If the new environment reuses an existing value file set unchanged, extending the existing test
+> case is usually enough.
+
+## Configuration Overview
+
+The chart uses AWS Systems Manager Parameter Store as the secret backend. The bootstrap credentials are passed
+through these values:
 
 - `aws.accessKeyId`
 - `aws.secretAccessKey`
 
 Set `bootstrapResources.enabled=true` to render the bootstrap secret. The secret is named `awssm-secret` and is
-used by the `awssm-parameter-store` ClusterSecretStore.
+used by the `awssm-parameter-store` `ClusterSecretStore`.
 
 The most important value files are:
 
-- `values-subchart-overrides.yaml` for subchart-specific overrides used by the tests and hydrated environments
-- `values-local.yaml` for local resource sizing
-- `values-development.yaml` for development clusters
-- `values-production.yaml` for production clusters
+- `values-subchart-overrides.yaml` — subchart-specific overrides shared by every hydrated environment.
+- `values-local.yaml` — local resource sizing.
+- `values-development.yaml` — development clusters.
+- `values-production.yaml` — production clusters, including the production AWS role.
 
-## Common workflows
+## Common Workflows
 
-### Update chart dependencies
+### Update Chart Dependencies
 
 ```sh
- docker run --rm -u $(id -u) -e HOME=/tmp \
+ docker run --rm \
+   -u $(id -u) \
+   -e HOME=/tmp \
    -v "$(pwd):/apps" \
    -w /apps \
    alpine/helm dependency update .
 ```
 
-### Render manifests for a local environment
+### Render Manifests for an Environment
+
+The example below renders the `local` environment. For another environment, swap in the `-f` files listed for it
+in `helm-config.yaml`.
 
 ```sh
- docker run --rm -u $(id -u) -e HOME=/tmp \
+ docker run --rm \
+   -u $(id -u) \
+   -e HOME=/tmp \
    -v "$(pwd):/apps" \
    -w /apps \
    alpine/helm template external-secrets . \
@@ -56,10 +90,14 @@ The most important value files are:
    -f values-local.yaml
 ```
 
-### Render the bootstrap secret for a cluster
+### Render the Bootstrap Secret
+
+Only needed once per cluster, to seed the AWS credentials the `ClusterSecretStore` authenticates with.
 
 ```sh
- docker run --rm -u $(id -u) -e HOME=/tmp \
+ docker run --rm \
+   -u $(id -u) \
+   -e HOME=/tmp \
    -v "$(pwd):/apps" \
    -w /apps \
    alpine/helm template external-secrets . \
@@ -71,38 +109,64 @@ The most important value files are:
    -s templates/awssm-secret.yaml
 ```
 
-### Run Helm unittest
+### Run Helm Unittest
 
 ```sh
- docker run --rm -u $(id -u) -e HOME=/tmp \
+ docker run --rm \
+   -u $(id -u) \
+   -e HOME=/tmp \
    -e HELM_CACHE_HOME=/tmp/helm/.config \
    -v "$(pwd):/apps" \
    -w /apps \
    helmunittest/helm-unittest .
 ```
 
-### Run Helm unittest with JUnit output
+### Run Helm Unittest with JUnit Output
 
 ```sh
- docker run --rm -u $(id -u) -e HOME=/tmp \
+ docker run --rm \
+   -u $(id -u) \
+   -e HOME=/tmp \
    -e HELM_CACHE_HOME=/tmp/helm/.config \
    -v "$(pwd):/apps" \
    -w /apps \
    helmunittest/helm-unittest -o test-output.xml .
 ```
 
-### Run GitHub workflows locally
+## Testing
 
-To run the repository workflows locally, start the workbench, change into this repository, and run:
+`tests/` covers, per Helm unittest suite:
+
+- One suite per CRD shipped by the `external-secrets` subchart, asserting the Argo CD server-side apply
+  annotation from `values-subchart-overrides.yaml` is set, plus a snapshot for broad regression detection.
+- Resource sizing (CPU/memory) and container image stability for the core controller, webhook, and
+  cert-controller deployments, asserted separately for local and non-local environments.
+- `ServiceMonitor` labels, the `awssm-secret` bootstrap secret, and the `awssm-parameter-store`
+  `ClusterSecretStore` settings per environment.
+
+> [!NOTE]
+> Snapshot files under `tests/__snapshot__/` are generated locally by Helm unittest and are gitignored — do not
+> commit them.
+
+## Continuous Integration
+
+- **Helm unittest** (`helm-unittest.yaml`) — runs the test suite on every push.
+- **Helm hydration** (`helm-hydration.yaml`) — renders manifests for every environment in `helm-config.yaml` on
+  push to `main`.
+- **Trufflehog** (`trufflehog.yaml`) — scans for committed secrets on push, pull request, and manual dispatch.
+- **Renovate** (`renovate.json`) — keeps the `external-secrets` chart dependency and GitHub Actions up to date,
+  auto-merging minor and patch updates.
+
+All three workflows call reusable workflows from `steadforce/steadops-workflows`.
+
+## Local Development
+
+To run the repository's GitHub workflows locally, start the `SteadOps-Steadies-K8s-Workplace` workbench — which
+also provides `helm`, `yq`, `kubectl`, and `hetzner-k3s` for related cluster work — change into this repository,
+and run:
 
 ```sh
  act
 ```
 
 On the first run, `act` asks which image flavor to use. The default `medium` is a good starting point.
-
-## Notes
-
-- `tests/` includes resource assertions, CRD annotations, and environment-specific checks for the hydrated chart.
-- If you add a new environment value file, update `helm-config.yaml` and add a matching test case.
-- Snapshot files in `tests/__snapshot__/` are generated by Helm unittest and should not be committed unless needed.
