@@ -1,0 +1,17 @@
+suite: cloudsmithaccesstoken CRD has Argo CD server-side apply annotation
+release:
+  name: external-secrets
+templates:
+- charts/external-secrets/templates/crds/cloudsmithaccesstoken.yaml
+values:
+- ../values-subchart-overrides.yaml
+tests:
+- it: matches the cloudsmithaccesstoken crd snapshot
+  asserts:
+  - matchSnapshot: {}
+- it: sets the Argo CD server-side apply annotation
+  asserts:
+  - isSubset:
+      path: metadata.annotations
+      content:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
