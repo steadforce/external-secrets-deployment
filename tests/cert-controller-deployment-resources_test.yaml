@@ -62,12 +62,10 @@ tests:
       pattern: *imagePattern
 
 - it: sets non-local resources for cert-controller on production environment
-  values:
+  values: &productionValues
   - *subchartOverrideValuesFile
   - ../values-production.yaml
   asserts: *nonLocalResourcesAssert
 - it: sets non-local image for cert-controller on production environment
-  values:
-  - *subchartOverrideValuesFile
-  - ../values-production.yaml
+  values: *productionValues
   asserts: *nonLocalImageAssert
