@@ -6,10 +6,10 @@ templates:
 values:
 - ../values-subchart-overrides.yaml
 tests:
-- it: snapshot test for detecting side effects on githubaccesstoken crd during local development
+- it: matches the githubaccesstoken crd snapshot
   asserts:
   - matchSnapshot: {}
-- it: check if the githubaccesstoken crd annotations contain the argocd server-side apply annotation
+- it: sets the Argo CD server-side apply annotation
   asserts:
   - isSubset:
       path: metadata.annotations

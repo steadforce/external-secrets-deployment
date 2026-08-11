@@ -1,28 +1,28 @@
-suite: external-secrets deployment resources per environment
+suite: external-secrets deployment resources and image per environment
 release:
   name: external-secrets
 templates:
 - charts/external-secrets/templates/deployment.yaml
 tests:
-- it: snapshot test for detecting side effects on all local external-secrets deployments during local development
+- it: matches the local external-secrets deployment snapshot
   asserts:
   - matchSnapshot: {}
   values: &localValues
   - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
   - ../values-local.yaml
-- it: snapshot test for detecting side effects on all dev external-secrets deployments during local development
+- it: matches the development external-secrets deployment snapshot
   asserts:
   - matchSnapshot: {}
   values: &developmentValues
   - *subchartOverrideValuesFile
   - ../values-development.yaml
-- it: snapshot test for detecting side effects on all prod external-secrets deployments during local development
+- it: matches the production external-secrets deployment snapshot
   asserts:
   - matchSnapshot: {}
   values: &productionValues
   - *subchartOverrideValuesFile
   - ../values-production.yaml
-- it: external-secrets container resources for local cluster
+- it: sets local resources for external-secrets container
   values: *localValues
   asserts:
   - matchRegex:
@@ -41,7 +41,7 @@ tests:
       path: &requestsMemoryAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].resources.requests.memory
       # on local cluster we expect 0 or 0Mi 0Gi memory requests
       pattern: "^0(Ki|Mi|Gi)?$"
-- it: external-secrets container image for local cluster
+- it: sets local image for external-secrets container
   values: *localValues
   asserts:
   - matchRegex:
@@ -49,7 +49,7 @@ tests:
       # keep image repository stable and allow chart-tag upgrades
       pattern: &imagePattern ^ghcr\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
 
-- it: external-secrets container resources for dev-cloud01 cluster
+- it: sets non-local resources for external-secrets on development environment
   values: *developmentValues
   asserts: &externalSecretsResourcesAssert
   - matchRegex:
@@ -68,16 +68,16 @@ tests:
       path: *requestsMemoryAssertPath
       # on non local cluster we expect non 0 memory requests
       pattern: *nonZeroMemoryPattern
-- it: external-secrets container image for dev-cloud01 cluster
+- it: sets non-local image for external-secrets on development environment
   values: *developmentValues
   asserts: &externalSecretsImageAssert
   - matchRegex:
       path: *imageAssertPath
       pattern: *imagePattern
 
-- it: external-secrets container resources for prod-cloud01 cluster
+- it: sets non-local resources for external-secrets on production environment
   values: *productionValues
   asserts: *externalSecretsResourcesAssert
-- it: external-secrets container image for prod-cloud01 cluster
+- it: sets non-local image for external-secrets on production environment
   values: *productionValues
   asserts: *externalSecretsImageAssert
