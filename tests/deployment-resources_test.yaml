@@ -41,6 +41,13 @@ tests:
       path: &requestsMemoryAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].resources.requests.memory
       # on local cluster we expect 0 or 0Mi 0Gi memory requests
       pattern: "^0(Ki|Mi|Gi)?$"
+- it: external-secrets container image for local cluster
+  values: *localValues
+  asserts:
+  - matchRegex:
+      path: &imageAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].image
+      # keep image repository stable and allow chart-tag upgrades
+      pattern: &imagePattern ^ghcr\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
 
 - it: external-secrets container resources for dev-cloud01 cluster
   values: *developmentValues
@@ -61,7 +68,16 @@ tests:
       path: *requestsMemoryAssertPath
       # on non local cluster we expect non 0 memory requests
       pattern: *nonZeroMemoryPattern
+- it: external-secrets container image for dev-cloud01 cluster
+  values: *developmentValues
+  asserts: &externalSecretsImageAssert
+  - matchRegex:
+      path: *imageAssertPath
+      pattern: *imagePattern
 
 - it: external-secrets container resources for prod-cloud01 cluster
   values: *productionValues
   asserts: *externalSecretsResourcesAssert
+- it: external-secrets container image for prod-cloud01 cluster
+  values: *productionValues
+  asserts: *externalSecretsImageAssert

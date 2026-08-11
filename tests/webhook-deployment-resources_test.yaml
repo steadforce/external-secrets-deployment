@@ -5,7 +5,7 @@ templates:
 - charts/external-secrets/templates/webhook-deployment.yaml
 tests:
 - it: sets local resources for webhook container
-  values:
+  values: &localValues
   - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
   - ../values-local.yaml
   asserts:
@@ -25,13 +25,16 @@ tests:
       path: &requestsMemoryAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.memory
       # on local cluster we expect 0 or 0Mi 0Gi memory requests
       pattern: "^0(Ki|Mi|Gi)?$"
+- it: sets local image for webhook container
+  values: *localValues
+  asserts:
   - matchRegex:
       path: &imageAssertPath spec.template.spec.containers[?(@.name == "webhook")].image
       # keep image repository stable and allow chart-tag upgrades
       pattern: &imagePattern ^ghcr\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
 
 - it: sets non-local resources for webhook on development environment
-  values:
+  values: &developmentValues
   - *subchartOverrideValuesFile
   - ../values-development.yaml
   asserts: &nonLocalResourcesAssert
@@ -51,6 +54,9 @@ tests:
       path: *requestsMemoryAssertPath
       # on non local cluster we expect non 0 memory requests
       pattern: *nonZeroMemoryPattern
+- it: sets non-local image for webhook on development environment
+  values: *developmentValues
+  asserts: &nonLocalImageAssert
   - matchRegex:
       path: *imageAssertPath
       pattern: *imagePattern
@@ -60,3 +66,8 @@ tests:
   - *subchartOverrideValuesFile
   - ../values-production.yaml
   asserts: *nonLocalResourcesAssert
+- it: sets non-local image for webhook on production environment
+  values:
+  - *subchartOverrideValuesFile
+  - ../values-production.yaml
+  asserts: *nonLocalImageAssert
