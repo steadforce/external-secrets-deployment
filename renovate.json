@@ -6,6 +6,14 @@
   ],
   "packageRules": [
     {
+      "matchManagers": [
+        "helmv3"
+      ],
+      "separateMinorPatch": true,
+      "separateMultipleMajor": true,
+      "separateMultipleMinor": true
+    },
+    {
       "automerge": true,
       "automergeStrategy": "squash",
       "matchPackageNames": [
