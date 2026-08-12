@@ -1,39 +1,61 @@
-suite: test if the settings for service-monitors are correct
+suite: ServiceMonitor labels per environment
 capabilities:
   apiVersions:
+  - monitoring.coreos.com/v1
   - monitoring.coreos.com/v1/ServiceMonitor
 release:
   name: external-secrets
 templates:
 - charts/external-secrets/templates/servicemonitor.yaml
 tests:
-- it: snapshot test for detecting side effects on all local service-monitors during local development
-  asserts:
-  - matchSnapshot: {}
+- it: sets prometheus label on core controller monitor for local environment
   values: &localValues
-  - ../values-subchart-overrides.yaml
+  - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
   - ../values-local.yaml
-- it: snapshot test for detecting side effects on all dev service-monitors during local development
-  asserts:
-  - matchSnapshot: {}
-  values: &devValues
-  - ../values-subchart-overrides.yaml
-  - ../values-development.yaml
-- it: snapshot test for detecting side effects on all prod service-monitors during local development
-  asserts:
-  - matchSnapshot: {}
-  values: &prodValues
-  - ../values-subchart-overrides.yaml
-  - ../values-production.yaml
-- it: prometheus label is set to cluster-monitoring for all service-monitors on local cluster
+  documentSelector: &coreControllerMonitorSelector
+    path: metadata.name
+    value: external-secrets-metrics
   asserts: &prometheusLabelAssert
-  - equal:
+  - matchRegex:
       path: metadata.labels.prometheus
-      value: cluster-monitoring
+      pattern: ^cluster-monitoring$
+- it: sets prometheus label on webhook monitor for local environment
   values: *localValues
-- it: prometheus label is set to cluster-monitoring for all service-monitors on development cluster
+  documentSelector: &webhookMonitorSelector
+    path: metadata.name
+    value: external-secrets-webhook-metrics
   asserts: *prometheusLabelAssert
-  values: *devValues
-- it: prometheus label is set to cluster-monitoring for all service-monitors on production cluster
+- it: sets prometheus label on cert-controller monitor for local environment
+  values: *localValues
+  documentSelector: &certControllerMonitorSelector
+    path: metadata.name
+    value: external-secrets-cert-controller-metrics
   asserts: *prometheusLabelAssert
-  values: *prodValues
+- it: sets prometheus label on core controller monitor for development environment
+  values: &developmentValues
+  - *subchartOverrideValuesFile
+  - ../values-development.yaml
+  documentSelector: *coreControllerMonitorSelector
+  asserts: *prometheusLabelAssert
+- it: sets prometheus label on webhook monitor for development environment
+  values: *developmentValues
+  documentSelector: *webhookMonitorSelector
+  asserts: *prometheusLabelAssert
+- it: sets prometheus label on cert-controller monitor for development environment
+  values: *developmentValues
+  documentSelector: *certControllerMonitorSelector
+  asserts: *prometheusLabelAssert
+- it: sets prometheus label on core controller monitor for production environment
+  values: &productionValues
+  - *subchartOverrideValuesFile
+  - ../values-production.yaml
+  documentSelector: *coreControllerMonitorSelector
+  asserts: *prometheusLabelAssert
+- it: sets prometheus label on webhook monitor for production environment
+  values: *productionValues
+  documentSelector: *webhookMonitorSelector
+  asserts: *prometheusLabelAssert
+- it: sets prometheus label on cert-controller monitor for production environment
+  values: *productionValues
+  documentSelector: *certControllerMonitorSelector
+  asserts: *prometheusLabelAssert

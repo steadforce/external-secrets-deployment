@@ -1,4 +1,4 @@
-suite: check if the stssessiontoken crd has the argocd server-side apply annotation
+suite: stssessiontoken CRD has Argo CD server-side apply annotation
 release:
   name: external-secrets
 templates:
@@ -6,10 +6,10 @@ templates:
 values:
 - ../values-subchart-overrides.yaml
 tests:
-- it: snapshot test for detecting side effects on stssessiontoken crd during local development
+- it: matches the stssessiontoken crd snapshot
   asserts:
   - matchSnapshot: {}
-- it: check if the stssessiontoken crd annotations contain the argocd server-side apply annotation
+- it: sets the Argo CD server-side apply annotation
   asserts:
   - isSubset:
       path: metadata.annotations

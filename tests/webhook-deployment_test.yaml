@@ -1,0 +1,71 @@
+suite: webhook deployment resources and image per environment
+release:
+  name: external-secrets
+templates:
+- charts/external-secrets/templates/webhook-deployment.yaml
+tests:
+- it: sets local resources for webhook container
+  values: &localValues
+  - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
+  - ../values-local.yaml
+  asserts:
+  - matchRegex:
+      path: &cpuLimitsAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.limits.cpu
+      # on local cluster we expect 0 or 0m cpu limits
+      pattern: &localCpuPattern "^0(m)?$"
+  - matchRegex:
+      path: &memoryLimitsAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.limits.memory
+      # on local cluster we expect non 0 memory limits
+      pattern: &nonZeroMemoryPattern "^[1-9][0-9]*(Ki|Mi|Gi)?$"
+  - matchRegex:
+      path: &requestsCpuAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.cpu
+      # on local cluster we expect 0 or 0m cpu requests
+      pattern: *localCpuPattern
+  - matchRegex:
+      path: &requestsMemoryAssertPath spec.template.spec.containers[?(@.name == "webhook")].resources.requests.memory
+      # on local cluster we expect 0 or 0Mi 0Gi memory requests
+      pattern: "^0(Ki|Mi|Gi)?$"
+- it: sets local image for webhook container
+  values: *localValues
+  asserts:
+  - matchRegex:
+      path: &imageAssertPath spec.template.spec.containers[?(@.name == "webhook")].image
+      # keep image repository stable and allow chart-tag upgrades
+      pattern: &imagePattern ^ghcr\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
+
+- it: sets non-local resources for webhook on development environment
+  values: &developmentValues
+  - *subchartOverrideValuesFile
+  - ../values-development.yaml
+  asserts: &nonLocalResourcesAssert
+  - matchRegex:
+      path: *cpuLimitsAssertPath
+      # on non local cluster we expect >= 1m cpu limits
+      pattern: &cpuPattern "^[1-9][0-9]*(m)?$"
+  - matchRegex:
+      path: *memoryLimitsAssertPath
+      # on non local cluster we expect non 0 memory limits
+      pattern: *nonZeroMemoryPattern
+  - matchRegex:
+      path: *requestsCpuAssertPath
+      # on non local cluster we expect  >= 1m cpu cpu requests
+      pattern: *cpuPattern
+  - matchRegex:
+      path: *requestsMemoryAssertPath
+      # on non local cluster we expect non 0 memory requests
+      pattern: *nonZeroMemoryPattern
+- it: sets non-local image for webhook on development environment
+  values: *developmentValues
+  asserts: &nonLocalImageAssert
+  - matchRegex:
+      path: *imageAssertPath
+      pattern: *imagePattern
+
+- it: sets non-local resources for webhook on production environment
+  values: &productionValues
+  - *subchartOverrideValuesFile
+  - ../values-production.yaml
+  asserts: *nonLocalResourcesAssert
+- it: sets non-local image for webhook on production environment
+  values: *productionValues
+  asserts: *nonLocalImageAssert

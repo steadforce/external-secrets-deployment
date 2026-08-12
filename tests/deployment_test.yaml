@@ -1,0 +1,83 @@
+suite: external-secrets deployment resources and image per environment
+release:
+  name: external-secrets
+templates:
+- charts/external-secrets/templates/deployment.yaml
+tests:
+- it: matches the local external-secrets deployment snapshot
+  asserts:
+  - matchSnapshot: {}
+  values: &localValues
+  - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
+  - ../values-local.yaml
+- it: matches the development external-secrets deployment snapshot
+  asserts:
+  - matchSnapshot: {}
+  values: &developmentValues
+  - *subchartOverrideValuesFile
+  - ../values-development.yaml
+- it: matches the production external-secrets deployment snapshot
+  asserts:
+  - matchSnapshot: {}
+  values: &productionValues
+  - *subchartOverrideValuesFile
+  - ../values-production.yaml
+- it: sets local resources for external-secrets container
+  values: *localValues
+  asserts:
+  - matchRegex:
+      path: &cpuLimitsAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].resources.limits.cpu
+      # on local cluster we expect 0 or 0m cpu limits
+      pattern: &localCpuPattern "^0(m)?$"
+  - matchRegex:
+      path: &memoryLimitsAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].resources.limits.memory
+      # on local cluster we expect non 0 memory limits
+      pattern: &nonZeroMemoryPattern "^[1-9][0-9]*(Ki|Mi|Gi)?$"
+  - matchRegex:
+      path: &requestsCpuAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].resources.requests.cpu
+      # on local cluster we expect 0 or 0m cpu requests
+      pattern: *localCpuPattern
+  - matchRegex:
+      path: &requestsMemoryAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].resources.requests.memory
+      # on local cluster we expect 0 or 0Mi 0Gi memory requests
+      pattern: "^0(Ki|Mi|Gi)?$"
+- it: sets local image for external-secrets container
+  values: *localValues
+  asserts:
+  - matchRegex:
+      path: &imageAssertPath spec.template.spec.containers[?(@.name == "external-secrets")].image
+      # keep image repository stable and allow chart-tag upgrades
+      pattern: &imagePattern ^ghcr\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
+
+- it: sets non-local resources for external-secrets on development environment
+  values: *developmentValues
+  asserts: &externalSecretsResourcesAssert
+  - matchRegex:
+      path: *cpuLimitsAssertPath
+      # on non local cluster we expect >= 1m cpu limits
+      pattern: &cpuPattern "^[1-9][0-9]*(m)?$"
+  - matchRegex:
+      path: *memoryLimitsAssertPath
+      # on non local cluster we expect non 0 memory limits
+      pattern: *nonZeroMemoryPattern
+  - matchRegex:
+      path: *requestsCpuAssertPath
+      # on non local cluster we expect  >= 1m cpu cpu requests
+      pattern: *cpuPattern
+  - matchRegex:
+      path: *requestsMemoryAssertPath
+      # on non local cluster we expect non 0 memory requests
+      pattern: *nonZeroMemoryPattern
+- it: sets non-local image for external-secrets on development environment
+  values: *developmentValues
+  asserts: &externalSecretsImageAssert
+  - matchRegex:
+      path: *imageAssertPath
+      pattern: *imagePattern
+
+- it: sets non-local resources for external-secrets on production environment
+  values: *productionValues
+  asserts: *externalSecretsResourcesAssert
+- it: sets non-local image for external-secrets on production environment
+  values: *productionValues
+  asserts: *externalSecretsImageAssert

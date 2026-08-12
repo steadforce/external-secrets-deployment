@@ -1,4 +1,4 @@
-suite: check if the fake crd has the argocd server-side apply annotation
+suite: fake CRD has Argo CD server-side apply annotation
 release:
   name: external-secrets
 templates:
@@ -6,10 +6,10 @@ templates:
 values:
 - ../values-subchart-overrides.yaml
 tests:
-- it: snapshot test for detecting side effects on fake crd during local development
+- it: matches the fake crd snapshot
   asserts:
   - matchSnapshot: {}
-- it: check if the fake crd annotations contain the argocd server-side apply annotation
+- it: sets the Argo CD server-side apply annotation
   asserts:
   - isSubset:
       path: metadata.annotations
