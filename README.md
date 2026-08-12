@@ -152,8 +152,9 @@ Only needed once per cluster, to seed the AWS credentials the `ClusterSecretStor
 - **Helm hydration** (`helm-hydration.yaml`) — renders manifests for every environment in `helm-config.yaml` on
   push to `main`.
 - **Trufflehog** (`trufflehog.yaml`) — scans for committed secrets on push, pull request, and manual dispatch.
-- **Renovate** (`renovate.json`) — keeps the `external-secrets` chart dependency and GitHub Actions up to date,
-  auto-merging minor and patch updates.
+- **Renovate** (`renovate.json`) — keeps the `external-secrets` chart dependency and GitHub Actions up to date.
+  GitHub Actions updates and chart patch updates auto-merge; chart minor updates are split into a separate
+  branch per major/minor version, capped below the next major version's `.1.0` release, for manual review.
 
 All three workflows call reusable workflows from `steadforce/steadops-workflows`.
 
