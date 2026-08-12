@@ -11,7 +11,8 @@
       ],
       "separateMinorPatch": true,
       "separateMultipleMajor": true,
-      "separateMultipleMinor": true
+      "separateMultipleMinor": true,
+      "allowedVersions": "<{{add major 1}}.1.0"
     },
     {
       "automerge": true,
@@ -22,6 +23,15 @@
       "matchUpdateTypes": [
         "minor",
         "patch"
+      ]
+    },
+    {
+      "automerge": false,
+      "matchManagers": [
+        "helmv3"
+      ],
+      "matchUpdateTypes": [
+        "minor"
       ]
     },
     {
