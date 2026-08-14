@@ -1,5 +1,7 @@
 external-secrets:
   certController:
+    extraArgs:
+      zap-encoder: console
     resources:
       limits:
         cpu: 250m
@@ -10,6 +12,8 @@ external-secrets:
   crds:
     annotations:
       argocd.argoproj.io/sync-options: ServerSideApply=true
+  extraArgs:
+    zap-encoder: console
   resources:
     limits:
       cpu: 250m
@@ -22,6 +26,8 @@ external-secrets:
       prometheus: cluster-monitoring
     enabled: true
   webhook:
+    extraArgs:
+      zap-encoder: console
     resources:
       limits:
           cpu: 250m
