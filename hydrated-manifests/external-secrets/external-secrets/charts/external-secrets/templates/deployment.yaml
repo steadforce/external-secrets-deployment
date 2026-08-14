@@ -46,6 +46,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --concurrent=1
+            - --zap-encoder=console
             - --metrics-addr=:8080
             - --loglevel=info
             - --zap-time-encoding=epoch
