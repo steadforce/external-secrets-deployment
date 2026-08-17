@@ -58,7 +58,6 @@ spec:
             - --loglevel=info
             - --zap-time-encoding=epoch
             - --enable-partial-cache=true
-            - --zap-encoder=console
           ports:
             - containerPort: 8080
               protocol: TCP

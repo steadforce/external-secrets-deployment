@@ -56,7 +56,6 @@ spec:
             - --healthz-addr=:8081
             - --loglevel=info
             - --zap-time-encoding=epoch
-            - --zap-encoder=console
           ports:
             - containerPort: 8080
               protocol: TCP
