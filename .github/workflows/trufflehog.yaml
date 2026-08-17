@@ -6,10 +6,10 @@ name: Trufflehog
 on:
   push:
     branches:
-    - main
+    - environments/local
   pull_request:
     branches:
-    - main
+    - environments/local
   # Allow manual execution from the GitHub Actions UI for on-demand scans.
   workflow_dispatch:
 
