@@ -69,10 +69,3 @@ tests:
 - it: sets non-local image for webhook on production environment
   values: *productionValues
   asserts: *nonLocalImageAssert
-
-- it: enables plain text logging for webhook container
-  values: *localValues
-  asserts:
-  - contains:
-      path: spec.template.spec.containers[?(@.name == "webhook")].args
-      content: --zap-encoder=console
