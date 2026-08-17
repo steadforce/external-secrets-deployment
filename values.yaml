@@ -1,2 +1,0 @@
-aws:
-  role: "arn:aws:iam::737742117295:role/external-secrets"
