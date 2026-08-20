@@ -33,7 +33,7 @@ the pipeline.
 | Environment                                    | Value Files                                                    |
 | ----------------------------------------------- | ---------------------------------------------------------------- |
 | `local`                                         | `values-subchart-overrides.yaml`, `values-local.yaml`             |
-| `sf-k8s01-dev`, `sf-k8s02-dev`, `sf-k8s03-dev`   | `values-subchart-overrides.yaml`, `values-development.yaml`       |
+| `sf-k8s01-dev`, `sf-k8s02-dev`, `sf-k8s03-dev`, `sf-k8s04-dev` | `values-subchart-overrides.yaml`, `values-development.yaml`       |
 | `sf-k8s01-prod`                                  | `values-subchart-overrides.yaml`, `values-production.yaml`        |
 
 > [!TIP]

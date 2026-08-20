@@ -23,6 +23,9 @@ environments:
   sf-k8s03-dev:
     apis: *apis
     valueFiles: *devValues
+  sf-k8s04-dev:
+    apis: *apis
+    valueFiles: *devValues
   sf-k8s01-prod:
     apis: *apis
     valueFiles:
