@@ -59,3 +59,10 @@ tests:
   values: *productionValues
   documentSelector: *certControllerMonitorSelector
   asserts: *prometheusLabelAssert
+
+# serviceMonitor.enabled is false in the subchart, so all three monitors exist
+# only because values-subchart-overrides.yaml turns them on.
+- it: omits all monitors without the subchart override values
+  asserts:
+  - hasDocuments:
+      count: 0

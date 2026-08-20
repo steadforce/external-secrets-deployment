@@ -63,6 +63,11 @@ The most important value files are:
 
 ### Update Chart Dependencies
 
+> [!WARNING]
+> `charts/` and `Chart.lock` are gitignored build artifacts. A stale archive is not detected by the unit tests:
+> they render whatever version sits in `charts/`, so an outdated dependency passes the whole suite while
+> testing the wrong subchart. Run this after cloning and after every `Chart.yaml` change.
+
 ```sh
  docker run --rm \
    -u $(id -u) \
@@ -84,10 +89,17 @@ in `helm-config.yaml`.
    -v "$(pwd):/apps" \
    -w /apps \
    alpine/helm template external-secrets . \
+   -a external-secrets.io/v1/ClusterSecretStore \
    --include-crds \
    -f values-subchart-overrides.yaml \
    -f values-local.yaml
 ```
+
+> [!IMPORTANT]
+> `-a` is not optional here. `templates/awssm-cluster-secret-store.yaml` is gated on the
+> `external-secrets.io/v1/ClusterSecretStore` capability, so without it the `ClusterSecretStore` is silently
+> left out of the rendered output. The hydration pipeline supplies the API versions from the `apis` list in
+> `helm-config.yaml`.
 
 ### Render the Bootstrap Secret
 
@@ -131,6 +143,22 @@ Only needed once per cluster, to seed the AWS credentials the `ClusterSecretStor
    helmunittest/helm-unittest -o test-output.xml .
 ```
 
+### Refresh Test Snapshots
+
+```sh
+ docker run --rm \
+   -u $(id -u) \
+   -e HOME=/tmp \
+   -e HELM_CACHE_HOME=/tmp/helm/.config \
+   -v "$(pwd):/apps" \
+   -w /apps \
+   helmunittest/helm-unittest -u .
+```
+
+Needed after an intentional manifest change, most often a subchart version bump. Snapshots prove nothing on
+their own, since refreshing them silences a regression just as easily as it records an intended change — rely on
+the direct assertions for anything that must not change.
+
 ## Testing
 
 `tests/` covers, per Helm unittest suite:
@@ -141,6 +169,9 @@ Only needed once per cluster, to seed the AWS credentials the `ClusterSecretStor
   cert-controller deployments, asserted separately for local and non-local environments.
 - `ServiceMonitor` labels, the `awssm-secret` bootstrap secret, and the `awssm-parameter-store`
   `ClusterSecretStore` settings per environment.
+- The two gates that decide whether a resource exists at all: the `ServiceMonitor` resources appear only
+  because `values-subchart-overrides.yaml` enables them, and the `ClusterSecretStore` renders only once the
+  `external-secrets` CRDs are present.
 
 > [!NOTE]
 > Snapshot files under `tests/__snapshot__/` are generated locally by Helm unittest and are gitignored — do not
