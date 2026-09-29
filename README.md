@@ -48,6 +48,7 @@ the pipeline.
 | `sf-k8s02-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
 | `sf-k8s03-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
 | `sf-k8s04-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
+| `sf-k8s05-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
 | `sf-k8s01-prod` | `values-subchart-overrides.yaml`, `values-production.yaml`  |
 
 > [!TIP]
