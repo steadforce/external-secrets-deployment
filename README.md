@@ -48,6 +48,7 @@ the pipeline.
 | `sf-k8s02-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
 | `sf-k8s03-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
 | `sf-k8s04-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
+| `sf-k8s05-dev`  | `values-subchart-overrides.yaml`, `values-development.yaml` |
 | `sf-k8s01-prod` | `values-subchart-overrides.yaml`, `values-production.yaml`  |
 
 > [!TIP]
@@ -157,8 +158,8 @@ Only needed once per cluster, to seed the AWS credentials the `ClusterSecretStor
 
 ## Testing
 
-Run the Helm unittest suites after [Setup](#setup). Tests of the subcharts under `charts/` run as well, as in
-the pipeline.
+Run the Helm unittest suites after [Setup](#setup). Like the pipeline, helm-unittest also runs tests that
+subcharts under `charts/` ship; the `external-secrets` archive currently contributes none.
 
 ```sh
  docker run \
@@ -168,6 +169,20 @@ the pipeline.
    -v "$(pwd):/apps" \
    -w /apps \
    helmunittest/helm-unittest .
+```
+
+In the workbench, run the plugin through the workbench's `helm`:
+
+```sh
+ helm unittest .
+```
+
+The workbench image does not ship the helm-unittest plugin. The command works because the workbench mounts your
+`$HOME`, so a plugin installed in the host's Helm home is available. Install it once with the command below; Helm 4
+needs `--verify=false` for this unsigned plugin, as the pipeline does.
+
+```sh
+ helm plugin install --verify=false https://github.com/helm-unittest/helm-unittest.git
 ```
 
 helm-unittest writes XUnit by default. To get the JUnit report the pipeline publishes, add
@@ -199,8 +214,11 @@ the direct assertions for anything that must not change.
   cert-controller deployments, asserted separately for local and non-local environments.
 - `ServiceMonitor` labels, the `awssm-secret` bootstrap secret, and the `awssm-parameter-store`
   `ClusterSecretStore` settings per environment.
-- The two gates that decide whether a resource exists at all: the `ServiceMonitor` resources appear only
-  because `values-subchart-overrides.yaml` enables them, and the `ClusterSecretStore` renders only once the
+- The metrics Services and the webhook `metrics` port that the `ServiceMonitor` resources scrape, per
+  environment.
+- The gates that decide whether a resource exists at all: the `ServiceMonitor` resources and the metrics
+  Services appear only because `values-subchart-overrides.yaml` enables them, the core controller metrics
+  Service also needs the `ServiceMonitor` API, and the `ClusterSecretStore` renders only once the
   `external-secrets` CRDs are present.
 
 > [!NOTE]
@@ -212,7 +230,7 @@ the direct assertions for anything that must not change.
 All workflows call reusable workflows from `steadforce/steadops-workflows`, pinned to `v4.2.0`.
 
 - **Helm unittest** (`helm-unittest.yaml`) — runs on every push. Installs the subchart pinned by `Chart.lock`
-  with `helm dependency build`, runs the suites including subchart tests, publishes a JUnit report, and runs
+  with `helm dependency build`, runs the suites with subchart tests enabled, publishes a JUnit report, and runs
   `helm lint`. On `renovate/` branches it posts the result to Microsoft Teams: successes go to
   `STEADOPS_HELM_RENOVATION_MS_TEAMS_WEBHOOK`, failures to `STEADOPS_HELM_RENOVATION_ERROR_MS_TEAMS_WEBHOOK`
   (a separate error channel). When the error secret is unset, failures fall back to the regular webhook; with
