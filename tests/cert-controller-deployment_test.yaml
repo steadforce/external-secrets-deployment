@@ -10,26 +10,26 @@ tests:
   - ../values-local.yaml
   asserts:
   - matchRegex:
-      path: &cpuLimitsAssertPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.limits.cpu
+      path: &cpuLimitPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.limits.cpu
       # on local cluster we expect 0 or 0m cpu limits
       pattern: &localCpuPattern "^0(m)?$"
   - matchRegex:
-      path: &memoryLimitsAssertPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.limits.memory
+      path: &memoryLimitPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.limits.memory
       # on local cluster we expect non 0 memory limits
       pattern: &nonZeroMemoryPattern "^[1-9][0-9]*(Ki|Mi|Gi)?$"
   - matchRegex:
-      path: &requestsCpuAssertPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.requests.cpu
+      path: &cpuRequestPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.requests.cpu
       # on local cluster we expect 0 or 0m cpu requests
       pattern: *localCpuPattern
   - matchRegex:
-      path: &requestsMemoryAssertPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.requests.memory
+      path: &memoryRequestPath spec.template.spec.containers[?(@.name == "cert-controller")].resources.requests.memory
       # on local cluster we expect 0 or 0Mi 0Gi memory requests
       pattern: "^0(Ki|Mi|Gi)?$"
 - it: sets local image for cert-controller container
   values: *localValues
   asserts:
   - matchRegex:
-      path: &imageAssertPath spec.template.spec.containers[?(@.name == "cert-controller")].image
+      path: &imagePath spec.template.spec.containers[?(@.name == "cert-controller")].image
       # keep image repository stable and allow chart-tag upgrades
       pattern: &imagePattern ^ghcr\.io/external-secrets/external-secrets:v[0-9]+\.[0-9]+\.[0-9]+$
 
@@ -39,26 +39,26 @@ tests:
   - ../values-development.yaml
   asserts: &nonLocalResourcesAssert
   - matchRegex:
-      path: *cpuLimitsAssertPath
+      path: *cpuLimitPath
       # on non local cluster we expect >= 1m cpu limits
-      pattern: &cpuPattern "^[1-9][0-9]*(m)?$"
+      pattern: &nonZeroCpuPattern "^[1-9][0-9]*(m)?$"
   - matchRegex:
-      path: *memoryLimitsAssertPath
+      path: *memoryLimitPath
       # on non local cluster we expect non 0 memory limits
       pattern: *nonZeroMemoryPattern
   - matchRegex:
-      path: *requestsCpuAssertPath
+      path: *cpuRequestPath
       # on non local cluster we expect  >= 1m cpu cpu requests
-      pattern: *cpuPattern
+      pattern: *nonZeroCpuPattern
   - matchRegex:
-      path: *requestsMemoryAssertPath
+      path: *memoryRequestPath
       # on non local cluster we expect non 0 memory requests
       pattern: *nonZeroMemoryPattern
 - it: sets non-local image for cert-controller on development environment
   values: *developmentValues
   asserts: &nonLocalImageAssert
   - matchRegex:
-      path: *imageAssertPath
+      path: *imagePath
       pattern: *imagePattern
 
 - it: sets non-local resources for cert-controller on production environment

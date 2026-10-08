@@ -1,0 +1,109 @@
+suite: metrics Services per environment
+release:
+  name: external-secrets
+templates:
+- &coreMetricsServiceTemplate charts/external-secrets/templates/service.yaml
+- &certControllerMetricsServiceTemplate charts/external-secrets/templates/cert-controller-service.yaml
+- &webhookServiceTemplate charts/external-secrets/templates/webhook-service.yaml
+# The ServiceMonitors scrape the port named "metrics". The chart only exposes
+# that port because values-subchart-overrides.yaml sets serviceMonitor.enabled.
+# Capabilities are set per test because a test-level list cannot override a
+# suite-level one.
+tests:
+- it: renders the core controller metrics Service for local environment
+  template: *coreMetricsServiceTemplate
+  capabilities: &serviceMonitorCapabilities
+    apiVersions:
+    - monitoring.coreos.com/v1
+    - monitoring.coreos.com/v1/ServiceMonitor
+  values: &localValues
+  - &subchartOverrideValuesFile ../values-subchart-overrides.yaml
+  - ../values-local.yaml
+  asserts: &coreMetricsServiceAssert
+  - equal:
+      path: metadata.name
+      value: external-secrets-metrics
+  - equal:
+      path: &metricsPortTargetPath spec.ports[?(@.name == "metrics")].targetPort
+      value: metrics
+- it: renders the cert-controller metrics Service for local environment
+  template: *certControllerMetricsServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: *localValues
+  asserts: &certControllerMetricsServiceAssert
+  - equal:
+      path: metadata.name
+      value: external-secrets-cert-controller-metrics
+  - equal:
+      path: *metricsPortTargetPath
+      value: metrics
+- it: renders the metrics port on the webhook Service for local environment
+  template: *webhookServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: *localValues
+  asserts: &webhookMetricsPortAssert
+  - equal:
+      path: *metricsPortTargetPath
+      value: metrics
+
+- it: renders the core controller metrics Service for development environment
+  template: *coreMetricsServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: &developmentValues
+  - *subchartOverrideValuesFile
+  - ../values-development.yaml
+  asserts: *coreMetricsServiceAssert
+- it: renders the cert-controller metrics Service for development environment
+  template: *certControllerMetricsServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: *developmentValues
+  asserts: *certControllerMetricsServiceAssert
+- it: renders the metrics port on the webhook Service for development environment
+  template: *webhookServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: *developmentValues
+  asserts: *webhookMetricsPortAssert
+
+- it: renders the core controller metrics Service for production environment
+  template: *coreMetricsServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: &productionValues
+  - *subchartOverrideValuesFile
+  - ../values-production.yaml
+  asserts: *coreMetricsServiceAssert
+- it: renders the cert-controller metrics Service for production environment
+  template: *certControllerMetricsServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: *productionValues
+  asserts: *certControllerMetricsServiceAssert
+- it: renders the metrics port on the webhook Service for production environment
+  template: *webhookServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  values: *productionValues
+  asserts: *webhookMetricsPortAssert
+
+- it: omits the core controller metrics Service without the subchart override values
+  template: *coreMetricsServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  asserts: &noDocumentsAssert
+  - hasDocuments:
+      count: 0
+- it: omits the cert-controller metrics Service without the subchart override values
+  template: *certControllerMetricsServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  asserts: *noDocumentsAssert
+- it: omits the webhook metrics port without the subchart override values
+  template: *webhookServiceTemplate
+  capabilities: *serviceMonitorCapabilities
+  asserts:
+  - notExists:
+      path: spec.ports[?(@.name == "metrics")]
+
+# renderMode defaults to skipIfMissing: the hydration apis in helm-config.yaml
+# must list the ServiceMonitor API, otherwise the metrics Service disappears.
+- it: omits the core controller metrics Service while the ServiceMonitor API is absent
+  template: *coreMetricsServiceTemplate
+  capabilities:
+    apiVersions: []
+  values: *productionValues
+  asserts: *noDocumentsAssert
