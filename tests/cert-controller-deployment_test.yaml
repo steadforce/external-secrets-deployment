@@ -69,3 +69,12 @@ tests:
 - it: sets non-local image for cert-controller on production environment
   values: *productionValues
   asserts: *nonLocalImageAssert
+- it: gives cert-controller memory headroom above its observed peak on production
+  values: *productionValues
+  asserts:
+  - equal:
+      path: *memoryLimitPath
+      value: 128Mi
+  - equal:
+      path: *memoryRequestPath
+      value: 64Mi
