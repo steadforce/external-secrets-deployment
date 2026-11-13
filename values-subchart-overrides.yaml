@@ -3,10 +3,11 @@ external-secrets:
     resources:
       limits:
         cpu: 250m
-        memory: 64Mi
+        # 64Mi was too small: the controller was OOM-killed twice in a week at a peak of 63Mi
+        memory: 128Mi
       requests:
         cpu: 10m
-        memory: 32Mi
+        memory: 64Mi
   crds:
     annotations:
       argocd.argoproj.io/sync-options: ServerSideApply=true
