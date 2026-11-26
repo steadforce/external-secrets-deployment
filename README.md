@@ -227,7 +227,7 @@ the direct assertions for anything that must not change.
 
 ## CI/CD
 
-All workflows call reusable workflows from `steadforce/steadops-workflows`, pinned to `v4.2.0`.
+All workflows call reusable workflows from `steadforce/steadops-workflows`, pinned to a release or commit.
 
 - **Helm unittest** (`helm-unittest.yaml`) — runs on every push. Installs the subchart pinned by `Chart.lock`
   with `helm dependency build`, runs the suites with subchart tests enabled, publishes a JUnit report, and runs
@@ -240,6 +240,10 @@ All workflows call reusable workflows from `steadforce/steadops-workflows`, pinn
   apply and sync-wave `-1` annotations to CRDs, and opens one pull request per environment against the
   `environments/<name>` branch. Patch updates of the subchart share one pull request branch. The caller grants
   `issues: write` so the workflow can create the coloured `env: <name>` label for these pull requests.
+- **Label Renovate hydration** (`label-renovate-hydration.yaml`) — revalidates eligible hydration pull requests
+  after a successful Helm hydration run on `main` or on manual dispatch. Changes to a pull request do not
+  independently trigger revalidation; there is no scheduled polling. An existing eligibility label can remain
+  stale until a later successful revalidation.
 - **Trufflehog** (`trufflehog.yaml`) — scans the pushed commit range for secrets on push and pull request to
   `main`, and on manual dispatch.
 
